@@ -3,10 +3,10 @@ const app = express();
 const { conection } = require("../libs/libs-dbconnection");
 const getClienteSchema = require("../model/clientes");
 const { urlencoded, json } = require("body-parser");
+const csv = require("csvtojson");
 const busboy = require("connect-busboy");
-const fs = require("fs");
 var path = require("path");
-
+const { mongo } = require("mongoose");
 
 /*
 require("module-alias/register");
@@ -32,45 +32,98 @@ app.get("/health", async (req, res) => {
   res.status(200).send(req.body);
 });
 
-app.get("/crearCliente", async (req, res) => {
+app.post("/crearCliente", async (req, res) => {
   const Cliente = getClienteSchema();
   const db = await conection();
-  const cliente1 = new Cliente({
-    cod_envio: "ORD00001",
-    address_from_name: "Juan Ruiz",
-    address_from_email: "jr@example.com",
-    address_from_street1: "Av. Principal #123",
-    address_from_city: "Azcapotzalco",
-    address_from_province: "Ciudad de México",
-    address_from_postal_code: "2900",
-    address_from_country_code: "MX",
-    address_to_name: "Isabel Arredondo",
-    address_to_email: "isabel@example.com",
-    address_to_street1: "Av. las torres #123",
-    address_to_city: "Puebla",
-    address_to_province: "Puebla",
-    address_to_postal_code: "72450",
-    address_to_country_code: "MX",
-    parcel_length: "40",
-    parcel_width: "40",
-    parcel_height: "40",
-    parcel_dimensions_unit: "CM",
-    parcel_weight: "5",
-    parcel_weight_unit: "KG",
-  });
-  await cliente1.save();
-  console.log(cliente1);
-  res.status(200).send(`eso creo`);
+  const body = req.body;
+  body.state = "recibido";
+  const cliente1 = new Cliente(body);
+  const res1 = await cliente1.save();
+
+  res.status(200).send({ id: res1._id.toString() });
 });
 
 app.post("/convertirCsv", async (req, res) => {
-  var fstream;
-  req.pipe(req.busboy);
-  req.busboy.on("file", function (fieldname, file, filename) {
-    file.on("data", (data) => {
-     // const csv = fs.readFileSync(data)
-      console.log(data.toString());
+  try {
+    const Cliente = getClienteSchema();
+    const db = await conection();
+    req.pipe(req.busboy);
+    req.busboy.on("file", function (fieldname, file, filename) {
+      file.on("data", async (data) => {
+        // const csv = fs.readFileSync(data)
+        const daticos = await new Promise((resolve, reject) => {
+          csv()
+            .fromString(data.toString())
+            .then((jsonobj) => {
+              resolve(jsonobj);
+            });
+        });
+        daticos.forEach(async (cliente) => {
+          cliente.state = "Cliente ha recibido paquete";
+          const cliente1 = new Cliente(cliente);
+          await cliente1.save();
+        });
+      });
     });
-  });
-  res.send("todo bien");
+
+    res.send("todo bien");
+  } catch (error) {
+    res.status(500).send({ message: "incorrecto" });
+  }
+});
+
+app.get("/consultarEnvio", async (req, res) => {
+  const Cliente = getClienteSchema();
+  const db = await conection();
+  const props = req.query;
+
+  if (props.id) {
+    let newid;
+    try {
+      newid = mongo.ObjectId(props.id);
+    } catch (error) {
+      res.status(500).send({ message: "id invalido" });
+      return;
+    }
+    const envio = await Cliente.findById(newid);
+    if (envio) {
+      res.send(envio);
+    } else {
+      res.status(500).send({ message: "envio no existe" });
+      return;
+    }
+  } else if (props.cedula) {
+    const envio = await Cliente.find({ cedula: props.cedula }).exec();
+    if (envio) {
+      res.send(envio);
+    } else {
+      res.status(500).send({ message: "envio no existe" });
+      return;
+    }
+  } else {
+    res.status(500).send({ message: "debe tener id o cedula" });
+  }
+});
+
+app.get("/cambiarEstado", async (req, res) => {
+  const Cliente = getClienteSchema();
+  const db = await conection();
+  const props = req.query;
+
+  if (props.cod_envio && props.state) {
+    const docres = await Cliente.find({ cod_envio: props.cod_envio }).exec();
+    if (docres) {
+      const envio = docres[0];
+      envio.state = props.state;
+      console.log(envio);
+      const cliente1 = new Cliente(envio);
+      const resul = await cliente1.save();
+      res.send(resul);
+    } else {
+      res.status(500).send({ message: "envio no existe" });
+      return;
+    }
+  } else {
+    res.status(500).send({ message: "debe tener state y cod_envio" });
+  }
 });

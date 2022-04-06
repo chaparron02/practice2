@@ -18,6 +18,10 @@ const conection = () => {
   });
 };
 
+const getCollection =  () => {
+  
+}
+
 module.exports = {
   conection,
 };

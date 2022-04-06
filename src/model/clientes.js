@@ -26,9 +26,10 @@ const getClienteSchema = () => {
       parcel_dimensions_unit: { type: String, required: true },
       parcel_weight: { type: String, required: true },
       parcel_weight_unit: { type: String, required: true },
+      state: { type: String, required: true },
+      cedula: { type: String, required: true },
     })
   );
 };
 
 module.exports = getClienteSchema;
-
