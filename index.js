@@ -9,23 +9,26 @@ var path = require("path");
 const { mongo } = require("mongoose");
 const cors = require("cors");
 
-
 // const helmet = require("helmet");
 // const morgan = require("morgan");
 
-app.listen(3000, () => console.log(`App started listening at 3000`));
+const puerto = process.env.PORT || 3000;
+
+app.listen(puerto, () => console.log(`App started listening at 3000`));
 
 app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(busboy());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/health", async (req, res) => { //se mira que sirva la api
+app.get("/health", async (req, res) => {
+  //se mira que sirva la api
   console.log(req.body);
   res.status(200).send(req.body);
 });
 
-app.post("/crearCliente", async (req, res) => {//crea un cliente nuevo
+app.post("/crearCliente", async (req, res) => {
+  //crea un cliente nuevo
   const db = await conection();
   const Cliente = getClienteSchema();
   const body = req.body;
@@ -36,7 +39,8 @@ app.post("/crearCliente", async (req, res) => {//crea un cliente nuevo
   res.status(200).send({ id: res1._id.toString() });
 });
 
-app.post("/convertirCsv", async (req, res) => {//recibe el archivo, y lo convierte en json y lo envia a la db
+app.post("/convertirCsv", async (req, res) => {
+  //recibe el archivo, y lo convierte en json y lo envia a la db
   try {
     const Cliente = getClienteSchema();
     const db = await conection();
@@ -65,7 +69,8 @@ app.post("/convertirCsv", async (req, res) => {//recibe el archivo, y lo convier
   }
 });
 
-app.get("/consultarEnvio", async (req, res) => {//consulta por id y por cedula
+app.get("/consultarEnvio", async (req, res) => {
+  //consulta por id y por cedula
   const Cliente = getClienteSchema();
   const db = await conection();
   const props = req.query;
@@ -98,7 +103,8 @@ app.get("/consultarEnvio", async (req, res) => {//consulta por id y por cedula
   }
 });
 
-app.get("/cambiarEstado", async (req, res) => {//cambia el estado del envio
+app.get("/cambiarEstado", async (req, res) => {
+  //cambia el estado del envio
   const Cliente = getClienteSchema();
   const db = await conection();
   const props = req.query;
@@ -121,7 +127,8 @@ app.get("/cambiarEstado", async (req, res) => {//cambia el estado del envio
   }
 });
 
-app.get("/enviadoRecibido", async (req, res) => {//consultar cliente
+app.get("/enviadoRecibido", async (req, res) => {
+  //consultar cliente
   const db = await conection();
   const Cliente = getClienteSchema();
   const props = req.query;
