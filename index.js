@@ -1,25 +1,18 @@
 const express = require("express");
 const app = express();
-const { conection } = require("../libs/libs-dbconnection");
-const getClienteSchema = require("../model/clientes");
+const { conection } = require("./src/libs/libs-dbconnection");
+const getClienteSchema = require("./src/model/clientes");
 const { urlencoded, json } = require("body-parser");
 const csv = require("csvtojson");
 const busboy = require("connect-busboy");
 var path = require("path");
 const { mongo } = require("mongoose");
-
-/*
-require("module-alias/register");
 const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const emoji = require("node-emoji");
-const passport = require("passport");
 
 
-const strategyJWT = require("@appConfig/passport");
-const Routes = require("./routes/createRouter");
-*/
+// const helmet = require("helmet");
+// const morgan = require("morgan");
+
 app.listen(3000, () => console.log(`App started listening at 3000`));
 
 app.use(urlencoded({ extended: false }));
@@ -27,14 +20,14 @@ app.use(json());
 app.use(busboy());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/health", async (req, res) => {
+app.get("/health", async (req, res) => { //se mira que sirva la api
   console.log(req.body);
   res.status(200).send(req.body);
 });
 
-app.post("/crearCliente", async (req, res) => {
-  const Cliente = getClienteSchema();
+app.post("/crearCliente", async (req, res) => {//crea un cliente nuevo
   const db = await conection();
+  const Cliente = getClienteSchema();
   const body = req.body;
   body.state = "recibido";
   const cliente1 = new Cliente(body);
@@ -43,7 +36,7 @@ app.post("/crearCliente", async (req, res) => {
   res.status(200).send({ id: res1._id.toString() });
 });
 
-app.post("/convertirCsv", async (req, res) => {
+app.post("/convertirCsv", async (req, res) => {//recibe el archivo, y lo convierte en json y lo envia a la db
   try {
     const Cliente = getClienteSchema();
     const db = await conection();
@@ -72,7 +65,7 @@ app.post("/convertirCsv", async (req, res) => {
   }
 });
 
-app.get("/consultarEnvio", async (req, res) => {
+app.get("/consultarEnvio", async (req, res) => {//consulta por id y por cedula
   const Cliente = getClienteSchema();
   const db = await conection();
   const props = req.query;
@@ -105,7 +98,7 @@ app.get("/consultarEnvio", async (req, res) => {
   }
 });
 
-app.get("/cambiarEstado", async (req, res) => {
+app.get("/cambiarEstado", async (req, res) => {//cambia el estado del envio
   const Cliente = getClienteSchema();
   const db = await conection();
   const props = req.query;
@@ -125,5 +118,40 @@ app.get("/cambiarEstado", async (req, res) => {
     }
   } else {
     res.status(500).send({ message: "debe tener state y cod_envio" });
+  }
+});
+
+app.get("/enviadoRecibido", async (req, res) => {//consultar cliente
+  const db = await conection();
+  const Cliente = getClienteSchema();
+  const props = req.query;
+
+  if (props.name) {
+    let envios = await Cliente.find({ address_from_name: props.name }).exec();
+    let recibidos = await Cliente.find({
+      address_from_name: props.name,
+    }).exec();
+    if (envios) {
+      envios = envios.map((envio) => {
+        return { ...envio._doc, tipo_cliente: "envia" };
+      });
+    }
+
+    if (recibidos) {
+      recibidos = recibidos.map((recibido) => {
+        return { ...recibido._doc, tipo_cliente: "recibe" };
+      });
+    }
+    const res2 = [...envios, ...recibidos];
+    if (res2) {
+      res.send(res2);
+    } else {
+      res
+        .status(500)
+        .send({ message: "este nombre no ha enviado ningun paquete" });
+      return;
+    }
+  } else {
+    res.status(500).send({ message: "Falta el nombre" });
   }
 });
