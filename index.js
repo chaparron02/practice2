@@ -8,6 +8,7 @@ const busboy = require("connect-busboy");
 var path = require("path");
 const { mongo } = require("mongoose");
 const cors = require("cors");
+const { copyFileSync } = require("fs");
 //gato
 
 // const helmet = require("helmet");
@@ -49,7 +50,7 @@ app.post("/convertirCsv", async (req, res) => {
     req.busboy.on("file", function (fieldname, file, filename) {
       file.on("data", async (data) => {
         // const csv = fs.readFileSync(data)
-        console.log(data)
+        console.log(data);
         const daticos = await new Promise((resolve, reject) => {
           csv()
             .fromString(data.toString())
@@ -67,6 +68,7 @@ app.post("/convertirCsv", async (req, res) => {
 
     res.send("todo bien");
   } catch (error) {
+    console.log(error);
     res.status(500).send({ message: "incorrecto" });
   }
 });
