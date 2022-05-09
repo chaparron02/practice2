@@ -48,6 +48,7 @@ app.post("/convertirCsv", async (req, res) => {
     req.busboy.on("file", function (fieldname, file, filename) {
       file.on("data", async (data) => {
         // const csv = fs.readFileSync(data)
+        console.log(data)
         const daticos = await new Promise((resolve, reject) => {
           csv()
             .fromString(data.toString())
