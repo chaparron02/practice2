@@ -10,14 +10,13 @@ const { mongo } = require("mongoose");
 const cors = require("cors");
 const { copyFileSync } = require("fs");
 
-
 // const helmet = require("helmet");
 // const morgan = require("morgan");
 
 const puerto = process.env.PORT || 3000;
 
 app.listen(puerto, () => console.log(`App started listening at 3000`));
-app.use(cors({ credentials: true }))
+app.use(cors({ credentials: true }));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(busboy());
@@ -29,8 +28,9 @@ app.get("/health", async (req, res) => {
   res.status(200).send(req.body);
 });
 
-app.post("/crearCliente", async (req, res) => {
+app.post("/crearCliente",  async (req, res) => {
   //crea un cliente nuevo
+  res.header("Access-Control-Allow-Origin", "*");
   const db = await conection();
   const Cliente = getClienteSchema();
   const body = req.body;
@@ -75,6 +75,7 @@ app.post("/convertirCsv", async (req, res) => {
 
 app.get("/consultarEnvio", async (req, res) => {
   //consulta por id y por cedula
+  res.header("Access-Control-Allow-Origin", "*");
   const Cliente = getClienteSchema();
   const db = await conection();
   const props = req.query;
