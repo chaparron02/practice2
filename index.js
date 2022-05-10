@@ -9,7 +9,7 @@ var path = require("path");
 const { mongo } = require("mongoose");
 const cors = require("cors");
 const { copyFileSync } = require("fs");
-//gatofs
+
 
 // const helmet = require("helmet");
 // const morgan = require("morgan");
@@ -17,7 +17,7 @@ const { copyFileSync } = require("fs");
 const puerto = process.env.PORT || 3000;
 
 app.listen(puerto, () => console.log(`App started listening at 3000`));
-
+app.use(cors());
 app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(busboy());
