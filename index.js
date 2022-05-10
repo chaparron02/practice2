@@ -17,7 +17,7 @@ const { copyFileSync } = require("fs");
 const puerto = process.env.PORT || 3000;
 
 app.listen(puerto, () => console.log(`App started listening at 3000`));
-//app.use()
+app.use(cors({ credentials: true }))
 app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(busboy());
@@ -29,7 +29,7 @@ app.get("/health", async (req, res) => {
   res.status(200).send(req.body);
 });
 
-app.post("/crearCliente",cors({ credentials: false }), async (req, res) => {
+app.post("/crearCliente", async (req, res) => {
   //crea un cliente nuevo
   const db = await conection();
   const Cliente = getClienteSchema();
@@ -37,7 +37,6 @@ app.post("/crearCliente",cors({ credentials: false }), async (req, res) => {
   body.state = "recibido";
   const cliente1 = new Cliente(body);
   const res1 = await cliente1.save();
-  
 
   res.status(200).send({ id: res1._id.toString() });
 });
@@ -74,7 +73,7 @@ app.post("/convertirCsv", async (req, res) => {
   }
 });
 
-app.get("/consultarEnvio",cors({ credentials: true }), async (req, res) => {
+app.get("/consultarEnvio", async (req, res) => {
   //consulta por id y por cedula
   const Cliente = getClienteSchema();
   const db = await conection();
