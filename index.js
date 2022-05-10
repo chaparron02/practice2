@@ -14,9 +14,9 @@ const { copyFileSync } = require("fs");
 // const morgan = require("morgan");
 
 const puerto = process.env.PORT || 3000;
-app.options('*', cors({ credentials: true }))
 
 app.listen(puerto, () => console.log(`App started listening at 3000`));
+app.options('*', cors({ credentials: true }))
 app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(busboy());
