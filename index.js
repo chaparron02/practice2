@@ -16,13 +16,11 @@ const { copyFileSync } = require("fs");
 const puerto = process.env.PORT || 3000;
 
 app.listen(puerto, () => console.log(`App started listening at 3000`));
-app.options('*', cors({ credentials: true }))
+app.use(cors({ credentials: false }));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 app.use(busboy());
 app.use(express.static(path.join(__dirname, "public")));
-
-
 
 app.get("/health", async (req, res) => {
   //se mira que sirva la api
